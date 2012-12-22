@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-"""This script requires wget."""
+"""download a mp4 video from YouTube
+
+This script requires wget."""
 
 import sys
 import urllib2
