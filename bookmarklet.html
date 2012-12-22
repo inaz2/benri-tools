@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<title>bookmarklet</title>
+<h1>bookmarklet</h1>
+<p>
+<a href="javascript:(function g_en_ja(f){f.hl.value=(f.hl.value==='en')?'ja':'en';f.submit()})(document.forms[0]);">g_en_ja</a>
+<a href="javascript:(function g_site(l){var s='site:'+l.host+l.pathname.split(/(\/)/).slice(0,4).join(''),q=prompt(s,'');if(q!==null)l.assign('http://www.google.com/search?q='+encodeURIComponent(s+' '+q));})(location);">g_site</a>
+<a href="javascript:(function up(l){l.hash?l.hash='':(l.pathname+l.search!=='/')?l.assign(/\/$/.test(l.pathname+l.search)?'..':'.'):l.hostname=l.hostname.replace(/^[^.]+\./,function(m){return (m!=='www.')?'www.':'';});})(location);">up</a>
+<a href="javascript:(function cd(s){if(s)location.assign(s);})(prompt('cd','/'));">cd</a>
+</p>
+<h1>smart keywords</h1>
+<p>
+<a href="http://www.google.com/search?q=%s">g</a>
+<a href="http://eow.alc.co.jp/search?q=%s">alc</a>
+</p>
