@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+"""This script requires wget."""
+
 import sys
 import urllib2
 import urllib
@@ -13,6 +15,10 @@ def ytdown(url):
 
     vid = re.search(r'v=([^&]+)', url).group(1)
     while True:
+        m = re.search(r'[^,]*itag=38[^,]*', content)
+        if m:
+            size = 'Original'
+            break
         m = re.search(r'[^,]*itag=37[^,]*', content)
         if m:
             size = '1920x1080'
@@ -25,10 +31,11 @@ def ytdown(url):
         if m:
             size = '640x360'
             break
-        raise Exception('mp4 movie not found')
+        raise Exception('mp4 video not found')
     params = dict(pair.split('=') for pair in m.group(0).split('\\u0026'))
     download_url = "%s&signature=%s" % (urllib.unquote(params['url']), params['sig'])
-    subprocess.call(['wget', '-O', "YouTube %s (%s).mp4" % (vid, size), download_url])
+    code = subprocess.call(['wget', '-O', "YouTube %s (%s).mp4" % (vid, size), download_url])
+    sys.exit(code)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
