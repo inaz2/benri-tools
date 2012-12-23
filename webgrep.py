@@ -8,7 +8,7 @@ collect all links (with resolving relative path)
 $ python webgrep.py '//a/@href' http://www.example.com/
 
 collect all jpeg image links recursively
-$ python webgrep.py '//a[contains(@href,".jpg")]/@href' http://www.example.com/*
+$ python webgrep.py -r '//a[contains(@href,".jpg")]/@href' http://www.example.com/
 """
 
 import sys
@@ -16,10 +16,12 @@ import urllib2
 import libxml2
 from urlparse import urljoin, urldefrag
 
-def webgrep(xpath, root_url, is_recursive):
-    queue = [(root_url, None)]
-    visited = {}
-    visited[root_url] = True
+def webgrep(xpath, urls, is_recursive):
+    root_url = urls[0]
+    is_multiple_source = is_recursive or len(urls) > 1
+
+    queue = [(url, None) for url in urls]
+    visited = dict((url, True) for url in urls)
 
     while len(queue) > 0:
         (url, referrer) = queue.pop(0)
@@ -46,7 +48,7 @@ def webgrep(xpath, root_url, is_recursive):
                 content = node.content.strip()
                 if node.type == 'attribute' and node.name in ('href', 'src'):
                     content = urljoin(url, content)
-                if is_recursive:
+                if is_multiple_source:
                     print "%s:%s" % (url, content)
                 else:
                     print content
@@ -62,10 +64,12 @@ def webgrep(xpath, root_url, is_recursive):
             print >>sys.stderr, "%s: %s" % (url, e)
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print >>sys.stderr, "Usage: python %s XPATH URL[*]" % sys.argv[0]
+    from optparse import OptionParser
+    usage = "Usage: %prog [options] XPATH URL..."
+    parser = OptionParser(usage=usage)
+    parser.add_option('-r', '--recursive', action='store_true', dest='is_recursive', default=False, help='turn on recursive retrieving')
+    (options, args) = parser.parse_args()
+    if len(args) < 2:
+        parser.print_help()
         sys.exit(1)
-    if sys.argv[2][-1] == '*':
-        webgrep(sys.argv[1], sys.argv[2][:-1], True)
-    else:
-        webgrep(sys.argv[1], sys.argv[2], False)
+    webgrep(args[0], args[1:], options.is_recursive)
