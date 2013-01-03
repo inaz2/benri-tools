@@ -36,7 +36,7 @@ def ytdown(url):
         raise Exception('mp4 video not found')
     params = dict(pair.split('=') for pair in m.group(0).split('\\u0026'))
     download_url = "%s&signature=%s" % (urllib.unquote(params['url']), params['sig'])
-    code = subprocess.call(['wget', '-O', "YouTube %s (%s).mp4" % (vid, size), download_url])
+    code = subprocess.call(['wget', '-O', "[YouTube] %s (%s).mp4" % (vid, size), download_url])
     sys.exit(code)
 
 if __name__ == '__main__':
