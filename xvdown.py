@@ -27,7 +27,7 @@ def xvdown(url):
         raise Exception('flv video not found')
     d = dict(pair.split('=') for pair in flashvars.split('&'))
     flv_url = urllib.unquote(d['flv_url'])
-    code = subprocess.call(['wget', '-O', "XVIDEOS %s (%sx%s).flv" % (title, d['width'], d['height']), flv_url])
+    code = subprocess.call(['wget', '-O', "[XVIDEOS] %s (%sx%s).flv" % (title, d['width'], d['height']), flv_url])
     sys.exit(code)
 
 if __name__ == '__main__':
