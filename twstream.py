@@ -28,6 +28,8 @@ def twstream(keyword, username, password):
         result = json.loads(line)
         if not 'text' in result:
             continue
+        if not keyword and result['lang'] != 'ja':
+            continue
         created_at = datetime.strptime(result['created_at'], '%a %b %d %H:%M:%S +0000 %Y')
         created_at = created_at + timedelta(hours=9)    # tzinfo sucks (UTC -> JST)
         tweet_url = "http://twitter.com/%s/status/%s" % (result['user']['screen_name'], result['id'])
@@ -47,7 +49,7 @@ if __name__ == '__main__':
     username = raw_input('username: ')
     password = getpass.getpass('password: ')
 
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 2:
         twstream(None, username, password)
     else:
         twstream(sys.argv[1], username, password)
