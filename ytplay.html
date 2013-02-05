@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<title>ytplay</title>
+<!--
+You must have your file running on a webserver, 
+as the Flash player restricts calls between local files and the internet.
+
+For example, run
+$ python -m SimpleHTTPServer
+and access
+http://localhost:8000/ytplay.html
+with the web browser.
+-->
+<style type="text/css">
+html, body {
+  width: 100%;
+  height: 100%;
+}
+html {
+  display: table;
+}
+body {
+  background-color: black;
+  color: white;
+  line-height: 1.5;
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+}
+a:link {
+  color: white;
+}
+#control {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+}
+</style>
+<object id="ytplayer" width="640" height="360" type="application/x-shockwave-flash" data="http://www.youtube.com/apiplayer?enablejsapi=1&version=3">
+  <param name="allowScriptAccess" value="always"></param>
+</object>
+<p id="control">
+<span id="yttitle"></span><br>
+<a href="javascript:(function(){open(ytplayer.getVideoUrl())})()">open</a>
+<a href="javascript:(function(){onYouTubePlayerStateChange(0)})()">next</a>
+<a href="javascript:(function(){pauseOrResumeVideo()})()">pause/resume</a>
+<input id="input_url" type="text" size="80" name="url" value="" title="Type a YouTube URL and hit the ENTER key to change the video." placeholder="http://www.youtube.com/watch?v=XXXXXXXXXXX"></p>
+<script type="text/javascript">
+(function(w, d){
+var heightTable = {
+    "small": 240,
+    "medium": 360,
+    "large": 480,
+    "hd720": 720,
+    "hd1080": 1080,
+    "highres": 1080,
+};
+var nextVideo = {
+    vid: "OWSbfCPkTBk", // ももいろクローバーZ「サラバ、愛しき悲しみたちよ」MV
+    title: "",
+};
+var visited = {};
+visited[nextVideo.vid] = true;
+var ytplayer, yttitle, control;
+
+w.onYouTubePlayerReady = onYouTubePlayerReady;
+w.onYouTubePlayerStateChange = onYouTubePlayerStateChange;
+w.onPlaybackQualityChange = onPlaybackQualityChange;
+w.pauseOrResumeVideo = pauseOrResumeVideo;
+
+function debug(args) {
+    console.log(args.callee.name + "(" + Array.prototype.join.call(args) + ")");
+}
+
+function onYouTubePlayerReady(playerId) {
+    debug(arguments);
+    ytplayer = d.getElementById("ytplayer");
+    yttitle = d.getElementById("yttitle");
+    control = d.getElementById("control");
+    ytplayer.addEventListener("onStateChange", "onYouTubePlayerStateChange");
+    ytplayer.addEventListener("onPlaybackQualityChange", "onPlaybackQualityChange");
+
+    var input_url = d.getElementById("input_url");
+    input_url.addEventListener("keypress", function onkeypressInputUrl(e){
+        if (e.keyCode === KeyboardEvent.DOM_VK_RETURN) {
+            var m = /v=([-\w]+)/.exec(e.target.value);
+            nextVideo.vid = m[1];
+            nextVideo.title = "";
+            loadNextVideo();
+        }
+    }, false);
+
+    var tid;
+    w.addEventListener("resize", function onresizeWindow(e){
+        clearTimeout(tid);
+        tid = setTimeout(function changePlayerSize(e){
+            debug(arguments);
+            var qlevel = ytplayer.getPlaybackQuality();
+
+            var maxHeight = w.innerHeight - 2*(control.offsetHeight + 40);
+            var height = Math.min(heightTable[qlevel], maxHeight);
+            ytplayer.height = height;
+            ytplayer.width = height*16/9;
+        }, 200);
+    }, false);
+
+    loadNextVideo(true);
+}
+
+function onYouTubePlayerStateChange(newState) {
+    debug(arguments);
+    switch (newState) {
+    case 0: // ended
+        loadNextVideo();
+        break;
+    }
+}
+
+function onPlaybackQualityChange(newQuality) {
+    debug(arguments);
+    var qlevel = ytplayer.getPlaybackQuality();
+    var available_qlevels = ytplayer.getAvailableQualityLevels();
+    if (qlevel !== available_qlevels[0]) {
+        ytplayer.setPlaybackQuality(available_qlevels[0]);
+        return;
+    }
+
+    var maxHeight = w.innerHeight - 2*(control.offsetHeight + 40);
+    var height = Math.min(heightTable[qlevel], maxHeight);
+    ytplayer.height = height;
+    ytplayer.width = height*16/9;
+}
+
+function loadNextVideo(waitToPlay) {
+    if (waitToPlay) {
+        ytplayer.cueVideoById(nextVideo.vid);
+    } else {
+        ytplayer.loadVideoById(nextVideo.vid);
+    }
+    yttitle.textContent = nextVideo.title;
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "https://gdata.youtube.com/feeds/api/videos/" + nextVideo.vid + "/related?v=2&alt=json", true);
+    xhr.onreadystatechange = function onreadystatechange(){
+        if (xhr.readyState === 4) {
+            var obj = JSON.parse(xhr.responseText);
+            if (!yttitle.textContent) {
+                var title = obj.feed.title.$t;
+                var m = /^Videos related to '(.*)'$/.exec(title);
+                yttitle.textContent = m[1];
+            }
+            for (var i=0,l=obj.feed.entry.length; i<l; i++) {
+                var vid = obj.feed.entry[i].media$group.yt$videoid.$t;
+                if (!(vid in visited)) {
+                    nextVideo.vid = vid;
+                    nextVideo.title = obj.feed.entry[i].title.$t;
+                    visited[nextVideo.vid] = true;
+                    break;
+                }
+            }
+        }
+    };
+    xhr.send(null);
+}
+
+function pauseOrResumeVideo() {
+    if (ytplayer.getPlayerState() === 2) { // paused
+        ytplayer.playVideo();
+    } else {
+        ytplayer.pauseVideo();
+    }
+}
+})(window, document);
+</script>
