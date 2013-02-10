@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""download a flv video from XVIDEOS
+
+This script requires wget."""
 
 import sys
 import urllib2
@@ -28,12 +33,12 @@ def xvdown(url):
         raise Exception('flv video not found')
     d = dict(pair.split('=') for pair in flashvars.split('&'))
     flv_url = urllib.unquote(d['flv_url'])
-    code = subprocess.call(['wget', '-O', "[XVIDEOS][%s] %s (%sx%s).flv" % (vid, title, d['width'], d['height']), flv_url])
-    sys.exit(code)
+    filename = "[XVIDEOS][%s] %s (%sx%s).flv" % (vid, title, d['width'], d['height'])
+    subprocess.call(['wget', '-O', filename.replace('/', '／'), flv_url])
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print >>sys.stderr, "Usage: %s URL..." % sys.argv[0]
+        print >>sys.stderr, "Usage: python %s URL..." % sys.argv[0]
         sys.exit(1)
     for url in sys.argv[1:]:
         xvdown(url)

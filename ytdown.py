@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """download a mp4 video from YouTube
 
@@ -37,11 +38,12 @@ def ytdown(url):
         raise Exception('mp4 video not found')
     params = dict(pair.split('=') for pair in m.group(0).split('\\u0026'))
     download_url = "%s&signature=%s" % (urllib.unquote(params['url']), params['sig'])
-    code = subprocess.call(['wget', '-O', "[YouTube][%s] %s (%s).mp4" % (vid, title, size), download_url])
-    sys.exit(code)
+    filename = "[YouTube][%s] %s (%s).mp4" % (vid, title, size)
+    subprocess.call(['wget', '-O', filename.replace('/', '／'), download_url])
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print >>sys.stderr, "Usage: python %s URL" % sys.argv[0]
+        print >>sys.stderr, "Usage: python %s URL..." % sys.argv[0]
         sys.exit(1)
-    ytdown(sys.argv[1])
+    for url in sys.argv[1:]:
+        ytdown(url)
