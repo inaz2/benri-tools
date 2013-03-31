@@ -58,7 +58,8 @@ def twstream(keyword, username, password):
         print line.encode('utf-8')
 
 if __name__ == '__main__':
-    username = raw_input('username: ')
+    sys.stderr.write('username: ')
+    username = raw_input()
     password = getpass.getpass('password: ')
 
     if len(sys.argv) < 2:
